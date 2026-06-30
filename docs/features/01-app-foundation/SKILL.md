@@ -2,8 +2,9 @@
 name: mentalreset-app-foundation
 description: >-
   Implement MentalReset app foundation — Vite/React scaffold, app shell navigation,
-  theme/layout system, Zustand stores, and session FSM. Use when bootstrapping the
-  project, adding global layout, routing, state architecture, or shared UI primitives.
+  theme/layout system, Zustand stores, session FSM, and Playwright E2E tests. Use when
+  bootstrapping the project, adding global layout, routing, state architecture,
+  shared UI primitives, or foundation end-to-end test specs.
 ---
 
 # 01 — App Foundation
@@ -34,7 +35,7 @@ Getting the foundation wrong — leaky state mutations, missing offline persiste
 
 ## Goals
 
-1. **Project scaffold** — Vite + React + TypeScript (strict), Tailwind, ESLint, Prettier, Vitest, RTL.
+1. **Project scaffold** — Vite + React + TypeScript (strict), Tailwind, ESLint, Prettier, Vitest, RTL, Playwright.
 2. **Two-layer navigation** — App shell (IDLE, Today's Plan, Settings, History) separate from session FSM screens.
 3. **Theme & layout** — Mobile-first shell, design tokens, reusable UI primitives aligned with calm/minimal product principles.
 4. **State architecture** — Zustand stores + `sessionMachine` as the sole authority for session transitions.
@@ -61,6 +62,7 @@ Foundation work spans four concerns. Ship in this order:
 | 2 | State management + Dexie stub | Navigation and UI depend on stores |
 | 3 | Theme & layout | Shared primitives before screens |
 | 4 | App navigation | Wire shell + FSM view resolver |
+| 5 | E2E test harness | Playwright scaffold + foundation flows in CI |
 
 ---
 
@@ -75,6 +77,8 @@ Foundation work spans four concerns. Ship in this order:
 - **FR-7.** App shell routes MUST be unreachable during an active session unless the user confirms abandonment.
 - **FR-8.** Layout MUST be mobile-first with a single primary CTA slot per screen.
 - **FR-9.** Touch targets MUST be ≥ 44×44 px.
+- **FR-10.** Playwright MUST be configured with at least one passing E2E spec covering IDLE → session start.
+- **FR-11.** E2E tests MUST run headless in CI via `npm run test:e2e`.
 
 ---
 
@@ -99,6 +103,14 @@ src/
 │   └── syncStore.ts        # stub for 04
 ├── styles/                 # Tailwind entry, CSS variables / tokens
 └── types/                  # SessionState, TaskCategory, shared enums
+
+e2e/
+├── fixtures/               # Shared helpers, IndexedDB reset, route stubs
+├── pages/                  # Page objects (IdlePage, SessionGuardDialog, etc.)
+└── specs/
+    ├── app-boot.spec.ts
+    ├── navigation.spec.ts
+    └── session-persistence.spec.ts
 ```
 
 Keep feature folders cohesive. Avoid a flat `components/` dump that mixes session and shell concerns.
@@ -114,6 +126,7 @@ Keep feature folders cohesive. Avoid a flat `components/` dump that mixes sessio
 - **Framer Motion** — install now; lazy-load animation wrappers if bundle size matters
 - **dnd-kit** — install now; no usage until task views need it
 - **Vitest + RTL** — one smoke test proving `<App />` renders
+- **Playwright** — `npx playwright install` in setup docs; `webServer` points at `npm run dev` or `npm run preview`
 
 ### Firebase init pattern
 
@@ -132,7 +145,7 @@ Initialize once in `lib/firebase/`. Guard against missing env vars in dev with a
 
 - Commit `.env.example` with every required key documented.
 - Pin major dependency versions in `package.json`.
-- Add `typecheck` script (`tsc --noEmit`) and run it in CI alongside lint/test.
+- Add `typecheck`, `test`, `test:e2e` scripts; run all three in CI.
 - Do not commit Firebase service account keys — client SDK config only.
 
 ---
@@ -303,6 +316,124 @@ Do not silently discard session data without confirmation.
 
 ---
 
+## 5. End-to-End Testing (Playwright)
+
+Foundation E2E tests validate real browser behavior that unit tests miss: routing guards, IndexedDB persistence across reload, touch-target layout, and dialog flows. Full Mental Reset session flows (Brain Dump → Summary) are extended in feature 02 — foundation E2E covers the shell and FSM entry/exit only.
+
+### Setup
+
+Add Playwright during project setup (phase 1), write foundation specs during phase 4–5.
+
+```ts
+// playwright.config.ts — key settings
+export default defineConfig({
+  testDir: './e2e/specs',
+  fullyParallel: true,
+  retries: process.env.CI ? 2 : 0,
+  use: {
+    baseURL: 'http://localhost:5173',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+  },
+  projects: [
+    { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
+    { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },
+  ],
+});
+```
+
+**npm scripts:**
+
+- `test:e2e` — `playwright test`
+- `test:e2e:ui` — `playwright test --ui` (local debugging)
+
+### Selector strategy
+
+Prefer stable, accessible selectors — never brittle CSS class chains:
+
+- `getByRole('button', { name: 'Start Mental Reset' })`
+- `getByRole('dialog')` for abandon-session confirm
+- `data-testid` only when role/label is insufficient (e.g. FSM debug state in dev)
+
+Add `aria-label` or visible text to every primary CTA during foundation implementation so E2E stays maintainable.
+
+### Foundation E2E scenarios
+
+| Spec | Scenario | Asserts |
+|---|---|---|
+| `app-boot.spec.ts` | Fresh visit | IDLE renders; Start + Today's Plan visible; no console errors |
+| `app-boot.spec.ts` | Mobile viewport (375px) | No horizontal overflow; primary CTA visible |
+| `navigation.spec.ts` | IDLE → Today's Plan | Plan view renders; back/return to IDLE works |
+| `navigation.spec.ts` | IDLE → Start session | FSM lands on `BRAIN_DUMP` placeholder |
+| `navigation.spec.ts` | Mid-session → Today's Plan | Abandon dialog appears; cancel keeps session |
+| `navigation.spec.ts` | Mid-session → confirm abandon | Returns to IDLE; ephemeral session cleared |
+| `session-persistence.spec.ts` | Start session → reload | Session state rehydrates from Dexie (not reset to IDLE) |
+| `session-persistence.spec.ts` | Abandon → reload | IDLE; no stale session in IndexedDB |
+
+### Page objects (recommended)
+
+```ts
+// e2e/pages/IdlePage.ts
+export class IdlePage {
+  constructor(private page: Page) {}
+  startButton = () => this.page.getByRole('button', { name: 'Start Mental Reset' });
+  todaysPlanLink = () => this.page.getByRole('link', { name: "Today's Plan" });
+  async goto() { await this.page.goto('/'); }
+}
+```
+
+Page objects keep specs readable and isolate selector changes to one file.
+
+### IndexedDB in E2E
+
+Reset storage between tests to avoid flaky state bleed:
+
+```ts
+// e2e/fixtures/storage.ts
+export async function resetAppStorage(page: Page) {
+  await page.goto('/');
+  await page.evaluate(() => indexedDB.deleteDatabase('mentalreset'));
+  await page.reload();
+}
+```
+
+Use a `test.beforeEach` hook that calls `resetAppStorage` unless the spec explicitly tests persistence across reload.
+
+### Edge cases
+
+| Scenario | Expected E2E behavior |
+|---|---|
+| Test runs before dev server ready | `webServer` waits; do not hardcode `sleep` |
+| IndexedDB blocked in headless | Skip with clear message or use Playwright storage state workaround |
+| Dialog animation delay | Use `await expect(dialog).toBeVisible()` — not fixed timeouts |
+| Parallel workers share nothing | Each test resets its own browser context storage |
+| Flaky network (Firebase) | Block Firebase domains in `page.route` for foundation tests — app must work offline |
+| `BRAIN_DUMP` is a placeholder | Assert screen heading or `data-testid="session-state-BRAIN_DUMP"` — not full session content |
+
+### Best practices
+
+- **Test user-visible outcomes**, not Zustand internals — assert what the user sees and can click.
+- **One behavior per test** — e.g. separate "dialog appears" from "abandon clears state".
+- **Run mobile project in CI** — MentalReset is mobile-first; desktop-only E2E misses layout regressions.
+- **Trace on retry** — `trace: 'on-first-retry'` in CI makes flaky failures diagnosable.
+- **Do not mock Dexie in E2E** — foundation persistence tests must hit real IndexedDB.
+- **Extend, don't rewrite** — feature 02 adds `session-flow.spec.ts`; keep foundation specs stable.
+
+### What waits for feature 02
+
+These E2E flows are out of scope for foundation but should reuse the same Playwright config and page-object patterns:
+
+- Full session: Brain Dump → Sorting → … → Summary → Finish
+- Thought CRUD during Brain Dump
+- Release animation timing
+
+---
+
 ## Acceptance Criteria
 
 - **AC-1.** *Given* a fresh clone, *when* `npm install && npm run dev && npm test`, *then* all pass without manual setup beyond copying `.env.example`.
@@ -311,6 +442,8 @@ Do not silently discard session data without confirmation.
 - **AC-4.** *Given* mid-session, *when* user attempts to open Today's Plan, *then* abandon confirmation appears.
 - **AC-5.** *Given* mobile viewport 375px, *when* any foundation screen renders, *then* no horizontal scroll and primary CTA meets 44px touch target.
 - **AC-6.** *Given* Dexie initialized, *when* session state changes, *then* active session persists and survives page reload.
+- **AC-7.** *Given* CI pipeline, *when* `npm run test:e2e` runs, *then* all foundation Playwright specs pass headless.
+- **AC-8.** *Given* an active session, *when* E2E test navigates to Today's Plan and cancels abandon, *then* session remains on `BRAIN_DUMP` (or current state).
 
 ---
 
@@ -324,8 +457,11 @@ Do not silently discard session data without confirmation.
 | **Component** | Session guard shows confirm dialog |
 | **Integration** | Dexie round-trip for session store rehydration |
 | **A11y** | axe on IDLE screen + abandon dialog |
-
-Defer Playwright E2E until feature 02 provides a full session path.
+| **E2E** | App boot on mobile viewport; IDLE actions visible |
+| **E2E** | Shell navigation: IDLE ↔ Today's Plan |
+| **E2E** | Session start → `BRAIN_DUMP`; guard blocks shell mid-session |
+| **E2E** | Abandon confirm/cancel flows |
+| **E2E** | Session rehydration after `page.reload()` |
 
 ---
 
@@ -338,6 +474,8 @@ Defer Playwright E2E until feature 02 provides a full session path.
 | Layout rework when session screens land | Medium | Ship `Screen` + CTA pattern before 02 |
 | IndexedDB schema churn | Medium | Version Dexie schema from day one; document migration path |
 | Bundle bloat from Firebase + Motion | Low | Lazy init Firebase; tree-shake unused Framer features |
+| Flaky E2E from shared IndexedDB state | Medium | Reset storage in `beforeEach`; isolated browser contexts |
+| E2E suite too slow for CI | Low | Parallel workers; scope foundation specs only; full session in 02 |
 
 ---
 
