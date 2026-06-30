@@ -1,5 +1,6 @@
 ---
 name: mentalreset-app-foundation
+disable-model-invocation: true
 description: >-
   Implement MentalReset app foundation — Vite/React scaffold, app shell navigation,
   theme/layout system, Zustand stores, session FSM, and Playwright E2E tests. Use when

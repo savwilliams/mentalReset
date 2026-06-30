@@ -1,5 +1,6 @@
 ---
 name: mentalreset-settings
+disable-model-invocation: true
 description: >-
   Implement MentalReset settings — notifications preferences, account settings,
   and app preferences. Use when building the Settings screen, auth upgrade UI,

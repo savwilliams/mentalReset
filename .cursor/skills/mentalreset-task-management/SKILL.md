@@ -1,5 +1,6 @@
 ---
 name: mentalreset-task-management
+disable-model-invocation: true
 description: >-
   Implement task management outside the session — Today's Plan, complete tasks,
   Save for Later management, and session history review. Use when building task

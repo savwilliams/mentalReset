@@ -1,5 +1,6 @@
 ---
 name: mentalreset-data-and-sync
+disable-model-invocation: true
 description: >-
   Implement MentalReset data layer — Dexie persistence, Firestore background sync,
   Firebase auth (anonymous + optional account), and mid-session recovery. Use when

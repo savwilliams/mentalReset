@@ -1,5 +1,6 @@
 ---
 name: mentalreset-mental-reset-session
+disable-model-invocation: true
 description: >-
   Implement the Mental Reset session workflow — start session, brain dump, sorting,
   prioritization, time estimation, release, and summary screens. Use when building
