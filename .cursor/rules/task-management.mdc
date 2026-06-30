@@ -1,0 +1,9 @@
+---
+description: Task management — Today's Plan, completion, categories, session history.
+globs: src/features/tasks/**,src/stores/taskStore.ts,e2e/specs/task-management.spec.ts
+alwaysApply: false
+---
+
+# Task Management
+
+Follow the **mentalreset-task-management** skill. Read `docs/features/03-task-management/SKILL.md` before implementing.

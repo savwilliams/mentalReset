@@ -1,0 +1,9 @@
+---
+description: Mental Reset session screens and session-flow E2E.
+globs: src/features/session/**,e2e/specs/session-flow.spec.ts
+alwaysApply: false
+---
+
+# Mental Reset Session
+
+Follow the **mentalreset-mental-reset-session** skill. Read `docs/features/02-mental-reset/SKILL.md` before implementing.

@@ -1,0 +1,9 @@
+---
+description: Data layer — Dexie, Firestore sync, Firebase auth, session recovery.
+globs: src/lib/db/**,src/lib/sync/**,src/lib/firebase/**,src/stores/syncStore.ts,e2e/specs/sync-recovery.spec.ts
+alwaysApply: false
+---
+
+# Data & Sync
+
+Follow the **mentalreset-data-and-sync** skill. Read `docs/features/04-data-and-sync/SKILL.md` before implementing.

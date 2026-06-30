@@ -1,0 +1,9 @@
+---
+description: Settings screen, preferences, account UI, notifications stub.
+globs: src/features/settings/**,src/stores/settingsStore.ts,e2e/specs/settings.spec.ts
+alwaysApply: false
+---
+
+# Settings
+
+Follow the **mentalreset-settings** skill. Read `docs/features/05-settings/SKILL.md` before implementing.
