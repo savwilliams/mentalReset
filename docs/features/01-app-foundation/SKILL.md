@@ -9,6 +9,8 @@ description: >-
 
 # 01 — App Foundation
 
+> **Canonical source** for this skill. Cursor loads it via `.cursor/skills/mentalreset-app-foundation/SKILL.md` (wrapper) and `.cursor/rules/app-foundation.mdc`.
+>
 > Implementation guide for the MentalReset foundation layer.  
 > Specs: [product_spec.md](../../specs/product_spec.md) · [tech_stack.md](../../specs/tech_stack.md) · [architecture.md](../../specs/architecture.md) · [ui_wireflow.md](../../specs/ui_wireflow.md) · [schema.md](../../specs/schema.md)
 

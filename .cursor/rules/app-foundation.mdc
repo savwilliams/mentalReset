@@ -1,0 +1,32 @@
+---
+description: >-
+  App foundation work for MentalReset — scaffold, navigation, theme, state, E2E.
+  Apply when bootstrapping or editing core app infrastructure.
+globs: src/**,e2e/**,playwright.config.ts,vite.config.ts,vitest.config.ts,package.json
+alwaysApply: false
+---
+
+# MentalReset — App Foundation
+
+When working on matched files (scaffold, `src/`, `e2e/`, or root config), follow the **mentalreset-app-foundation** skill.
+
+## Required reading
+
+Before implementing, read the full guide:
+
+`docs/features/01-app-foundation/SKILL.md`
+
+## Architecture reminders
+
+- Session flow is a linear FSM (`IDLE` → `BRAIN_DUMP` → … → `SUMMARY`). No skipping states.
+- App shell routes are blocked during an active session unless the user confirms abandon.
+- Export `useSessionActions()` to UI — do not expose raw session store setters.
+- Persist session state to Dexie on meaningful transitions; reset storage in E2E `beforeEach`.
+
+## Specs
+
+Defer to `docs/specs/` for product rules, schema enums, and UI wireflow — do not invent new categories or states.
+
+## Done means
+
+Phase acceptance criteria in the skill are met, and `npm test` / `npm run test:e2e` pass for the scope of work.
