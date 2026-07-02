@@ -1,14 +1,39 @@
-import { PrimaryCTA, Screen } from '@/components/ui';
+import { BrowserRouter } from 'react-router-dom';
+
+import { AbandonSessionDialog } from '@/components/ui';
+import { ShellRoutes, SessionGuardProvider, useSessionGuard } from '@/features/shell';
+import { SessionView } from '@/features/session';
+import { useIsSessionActive, useSessionHydrated } from '@/stores/sessionStore';
+
+function AppContent() {
+  const isHydrated = useSessionHydrated();
+  const isActive = useIsSessionActive();
+  const { isDialogOpen, confirmAbandon, cancelAbandon } = useSessionGuard();
+
+  if (!isHydrated) {
+    return null;
+  }
+
+  return (
+    <>
+      {isActive ? <SessionView /> : <ShellRoutes />}
+      <AbandonSessionDialog
+        open={isDialogOpen}
+        onConfirm={() => {
+          void confirmAbandon();
+        }}
+        onCancel={cancelAbandon}
+      />
+    </>
+  );
+}
 
 export function App() {
   return (
-    <Screen
-      title="MentalReset"
-      footer={<PrimaryCTA type="button">Start Mental Reset</PrimaryCTA>}
-    >
-      <p className="text-center text-[var(--color-text-secondary)]">
-        A calm space to reset your mind and plan your day.
-      </p>
-    </Screen>
+    <BrowserRouter>
+      <SessionGuardProvider>
+        <AppContent />
+      </SessionGuardProvider>
+    </BrowserRouter>
   );
 }
