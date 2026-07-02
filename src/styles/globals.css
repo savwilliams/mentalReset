@@ -22,6 +22,12 @@
   --font-size-heading: 1.5rem;
   --font-size-label: 0.875rem;
 
+  /* Touch targets — minimum 44px per WCAG / mobile guidelines */
+  --size-touch-min: 2.75rem;
+
+  /* Layout */
+  --size-content-max: 32rem;
+
   /* Motion — non-essential animations <= 300ms */
   --duration-fast: 150ms;
   --duration-normal: 250ms;
