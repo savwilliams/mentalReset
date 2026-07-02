@@ -5,5 +5,9 @@ ui_wireflow.md
 architecture.md
 schema.md
 wireframes
+AGENT-PROMPTS.md
 
 .env
+
+# Per-developer agent prompt progress (scripts/next-prompt.ps1)
+.cursor/prompt-progress.json
