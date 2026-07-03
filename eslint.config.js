@@ -13,6 +13,9 @@ export default tseslint.config(
       ecmaVersion: 2022,
       globals: globals.browser,
     },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
@@ -20,6 +23,12 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
+  },
+  {
+    files: ['e2e/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 );
