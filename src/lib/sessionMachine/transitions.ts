@@ -7,6 +7,10 @@ export const TRANSITION_TABLE: TransitionTable = {
   IDLE: {
     START: 'BRAIN_DUMP',
   },
+  START_REVIEW: {
+    CONTINUE: 'BRAIN_DUMP',
+    ABANDON: 'IDLE',
+  },
   BRAIN_DUMP: {
     CONTINUE: 'SORTING',
     ABANDON: 'IDLE',
@@ -62,6 +66,11 @@ export function isActiveSessionState(state: SessionState): boolean {
 
 export function isValidTransition(state: SessionState, event: SessionEvent): boolean {
   return TRANSITION_TABLE[state][event] !== undefined;
+}
+
+/** IDLE + START lands on START_REVIEW when LATER tasks exist, otherwise BRAIN_DUMP. */
+export function resolveStartTarget(hasLaterTasks: boolean): SessionState {
+  return hasLaterTasks ? 'START_REVIEW' : 'BRAIN_DUMP';
 }
 
 export { SESSION_EVENTS, SESSION_STATES };

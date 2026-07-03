@@ -2,6 +2,7 @@ export {
   getValidEvents,
   isActiveSessionState,
   isValidTransition,
+  resolveStartTarget,
   transition,
   TRANSITION_TABLE,
   SESSION_EVENTS,

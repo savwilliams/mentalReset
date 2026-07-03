@@ -1,5 +1,6 @@
 export const SESSION_STATES = [
   'IDLE',
+  'START_REVIEW',
   'BRAIN_DUMP',
   'SORTING',
   'PRIORITIZATION',
@@ -18,11 +19,15 @@ export type ThoughtResolution = 'TASK' | 'RELEASE';
 
 export type ThoughtPriority = 'TODAY' | 'SOON' | 'LATER' | 'CAN_DO_WITHOUT';
 
+export type ThoughtSource = 'SAVE_FOR_LATER';
+
 export interface Thought {
   id: string;
   text: string;
   resolvedAs?: ThoughtResolution;
   priority?: ThoughtPriority;
+  source?: ThoughtSource;
+  sourceTaskId?: string;
 }
 
 export interface SessionStats {

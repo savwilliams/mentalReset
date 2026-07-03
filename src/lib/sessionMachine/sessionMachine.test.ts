@@ -5,18 +5,30 @@ import {
   SESSION_STATES,
   getValidEvents,
   isValidTransition,
+  resolveStartTarget,
   transition,
 } from '@/lib/sessionMachine/transitions';
 
 describe('sessionMachine transitions', () => {
   it('defines valid events for each state', () => {
     expect(getValidEvents('IDLE')).toEqual(['START']);
+    expect(getValidEvents('START_REVIEW')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('BRAIN_DUMP')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('SORTING')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('PRIORITIZATION')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('TIME_ESTIMATION')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('RELEASE')).toEqual(['CONTINUE', 'ABANDON']);
     expect(getValidEvents('SUMMARY')).toEqual(['FINISH', 'ABANDON']);
+  });
+
+  it('resolves the start target based on Save for Later tasks', () => {
+    expect(resolveStartTarget(false)).toBe('BRAIN_DUMP');
+    expect(resolveStartTarget(true)).toBe('START_REVIEW');
+  });
+
+  it('supports the Save for Later review step before Brain Dump', () => {
+    expect(transition('START_REVIEW', 'CONTINUE')).toBe('BRAIN_DUMP');
+    expect(transition('START_REVIEW', 'ABANDON')).toBe('IDLE');
   });
 
   it('supports the full happy-path session flow', () => {

@@ -1,16 +1,24 @@
 import { useCallback, useMemo, useRef } from 'react';
 
+import { createThoughtsFromLaterTasks } from '@/features/session/hooks/pullInLaterTasks';
+import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
 import {
   clearEphemeralSessionData,
   persistSessionSnapshot,
   saveActiveSession,
 } from '@/lib/db/persist';
-import { getValidEvents, isActiveSessionState, transition } from '@/lib/sessionMachine/transitions';
+import {
+  getValidEvents,
+  isActiveSessionState,
+  resolveStartTarget,
+  transition,
+} from '@/lib/sessionMachine/transitions';
 import {
   getSessionSnapshot,
   useSessionState,
   useSessionStore,
 } from '@/stores/sessionStore';
+import { getTaskSnapshot } from '@/stores/taskStore';
 import type { SessionEvent, Thought } from '@/types/session';
 
 const THOUGHT_PERSIST_DEBOUNCE_MS = 300;
@@ -48,6 +56,7 @@ async function persistTransition(): Promise<void> {
 export interface SessionActions {
   start: () => Promise<void>;
   continue: () => Promise<void>;
+  completeStartReview: (selectedTaskIds: string[]) => Promise<void>;
   finish: () => Promise<void>;
   abandon: () => Promise<void>;
   updateThoughts: (thoughts: Thought[]) => void;
@@ -69,7 +78,10 @@ export function useSessionActions(): SessionActions {
     }
 
     const currentState = store.state;
-    const nextState = transition(currentState, event);
+    const nextState =
+      event === 'START' && currentState === 'IDLE'
+        ? resolveStartTarget(filterLaterTasks(getTaskSnapshot()).length > 0)
+        : transition(currentState, event);
 
     if (nextState === currentState) {
       return;
@@ -80,7 +92,10 @@ export function useSessionActions(): SessionActions {
 
     try {
       if (event === 'START') {
-        store.startSession();
+        if (nextState === 'IDLE') {
+          return;
+        }
+        store.startSession(nextState);
       } else if (event === 'ABANDON' || event === 'FINISH') {
         store.resetToIdle();
         await clearEphemeralSessionData();
@@ -102,11 +117,23 @@ export function useSessionActions(): SessionActions {
     scheduleThoughtPersist();
   }, []);
 
+  const completeStartReview = useCallback(
+    async (selectedTaskIds: string[]) => {
+      const thoughts = createThoughtsFromLaterTasks(selectedTaskIds);
+      if (thoughts.length > 0) {
+        useSessionStore.getState().setThoughts(thoughts);
+      }
+      await dispatch('CONTINUE');
+    },
+    [dispatch],
+  );
+
   const validEvents = useMemo(() => getValidEvents(state), [state]);
 
   return {
     start: () => dispatch('START'),
     continue: () => dispatch('CONTINUE'),
+    completeStartReview,
     finish: () => dispatch('FINISH'),
     abandon: async () => {
       await dispatch('ABANDON');
@@ -136,4 +163,4 @@ export async function awaitInFlightSessionPersist(): Promise<void> {
   }
 }
 
-export { getValidEvents, transition } from '@/lib/sessionMachine/transitions';
+export { getValidEvents, resolveStartTarget, transition } from '@/lib/sessionMachine/transitions';
