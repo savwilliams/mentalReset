@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Colors — calm palette, WCAG AA targets for Phase 3 */
+  --color-surface: #f8f7f4;
+  --color-surface-elevated: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #5c5c5c;
+  --color-accent: #3d6b8e;
+  --color-accent-hover: #2f5572;
+  --color-border: #e2e0db;
+  --color-danger: #b44a4a;
+
+  /* Spacing scale */
+  --spacing-screen-x: 1rem;
+  --spacing-screen-y: 1.5rem;
+  --spacing-section: 1.5rem;
+
+  /* Typography — inputs must stay >= 16px */
+  --font-size-body: 1rem;
+  --font-size-input: 1rem;
+  --font-size-heading: 1.5rem;
+  --font-size-label: 0.875rem;
+
+  /* Touch targets — minimum 44px per WCAG / mobile guidelines */
+  --size-touch-min: 2.75rem;
+
+  /* Layout */
+  --size-content-max: 32rem;
+
+  /* Motion — non-essential animations <= 300ms */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+    font-size: var(--font-size-body);
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
