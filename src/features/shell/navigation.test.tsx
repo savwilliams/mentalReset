@@ -205,6 +205,20 @@ describe('app navigation', () => {
 
     expect(screen.getByRole('heading', { name: /today's plan/i })).toBeInTheDocument();
   });
+
+  it('navigates to Session History from idle shell', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <SessionGuardProvider>
+          <NavigationHarness />
+        </SessionGuardProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /session history/i }));
+
+    expect(screen.getByRole('heading', { name: /session history/i })).toBeInTheDocument();
+  });
 });
 
 describe('resolveSessionView', () => {

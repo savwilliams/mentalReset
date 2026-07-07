@@ -32,6 +32,9 @@ export function IdleScreen() {
         <SecondaryButton type="button" onClick={() => navigate('/plan')}>
           Today&apos;s Plan
         </SecondaryButton>
+        <SecondaryButton type="button" onClick={() => navigate('/history')}>
+          Session History
+        </SecondaryButton>
         <SecondaryButton type="button" onClick={() => navigate('/settings')}>
           Settings
         </SecondaryButton>

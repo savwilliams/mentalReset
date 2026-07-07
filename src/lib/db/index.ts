@@ -20,3 +20,8 @@ export {
 } from '@/lib/db/repositories/sessionRepository';
 export { getAllTasks, saveTask, saveTasks } from '@/lib/db/repositories/taskRepository';
 export { getSettings, saveSettings } from '@/lib/db/repositories/settingsRepository';
+export {
+  clearSessionSummaries,
+  getAllSessionSummaries,
+  saveSessionSummary,
+} from '@/lib/db/repositories/sessionSummaryRepository';
