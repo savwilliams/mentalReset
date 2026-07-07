@@ -212,6 +212,7 @@ describe('resolveSessionView', () => {
     const { resolveSessionView } = await import('@/features/session/SessionView');
 
     expect(resolveSessionView('IDLE')).toBeNull();
+    expect(resolveSessionView('START_REVIEW')).not.toBeNull();
     expect(resolveSessionView('BRAIN_DUMP')).not.toBeNull();
     expect(resolveSessionView('SUMMARY')).not.toBeNull();
   });

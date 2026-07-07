@@ -15,7 +15,7 @@ interface SessionStoreState {
 
 interface SessionStoreActions {
   applyTransition: (nextState: SessionState) => void;
-  startSession: () => void;
+  startSession: (initialState?: Exclude<SessionState, 'IDLE'>) => void;
   resetToIdle: () => void;
   setTransitioning: (value: boolean) => void;
   setThoughts: (thoughts: Thought[]) => void;
@@ -44,10 +44,10 @@ export const useSessionStore = create<SessionStore>((set) => ({
       isTransitioning: false,
     })),
 
-  startSession: () => {
-    const session = createActiveSession('BRAIN_DUMP');
+  startSession: (initialState: Exclude<SessionState, 'IDLE'> = 'BRAIN_DUMP') => {
+    const session = createActiveSession(initialState);
     set({
-      state: 'BRAIN_DUMP',
+      state: initialState,
       sessionId: session.id,
       createdAt: session.createdAt,
       thoughts: session.thoughts,

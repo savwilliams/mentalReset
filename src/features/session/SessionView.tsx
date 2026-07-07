@@ -2,11 +2,12 @@ import type { ComponentType } from 'react';
 
 import { PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
 import { useSessionGuard } from '@/features/shell/useSessionGuard';
+import { StartSessionScreen } from '@/features/session/screens/StartSessionScreen';
 import { useSessionActions } from '@/lib/sessionMachine';
 import { useSessionState } from '@/stores/sessionStore';
 import type { SessionState } from '@/types/session';
 
-const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE'>, string> = {
+const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE' | 'START_REVIEW'>, string> = {
   BRAIN_DUMP: 'Brain Dump',
   SORTING: 'Sorting',
   PRIORITIZATION: 'Prioritization',
@@ -17,7 +18,7 @@ const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE'>, string> = {
 
 type ActiveSessionState = Exclude<SessionState, 'IDLE'>;
 
-function SessionStepPlaceholder({ step }: { step: ActiveSessionState }) {
+function SessionStepPlaceholder({ step }: { step: Exclude<ActiveSessionState, 'START_REVIEW'> }) {
   const { requestAbandon } = useSessionGuard();
   const { continue: continueSession, finish, validEvents, isTransitioning } = useSessionActions();
 
@@ -61,6 +62,7 @@ function SessionStepPlaceholder({ step }: { step: ActiveSessionState }) {
 }
 
 const SESSION_VIEWS: Record<ActiveSessionState, ComponentType> = {
+  START_REVIEW: StartSessionScreen,
   BRAIN_DUMP: () => <SessionStepPlaceholder step="BRAIN_DUMP" />,
   SORTING: () => <SessionStepPlaceholder step="SORTING" />,
   PRIORITIZATION: () => <SessionStepPlaceholder step="PRIORITIZATION" />,
