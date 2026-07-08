@@ -2,11 +2,11 @@ import { useCallback, useMemo, useRef } from 'react';
 
 import { createThoughtsFromLaterTasks } from '@/features/session/hooks/pullInLaterTasks';
 import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
+import { clearEphemeralSessionData } from '@/lib/db/persist';
 import {
-  clearEphemeralSessionData,
-  persistSessionSnapshot,
-  saveActiveSession,
-} from '@/lib/db/persist';
+  SESSION_THOUGHT_PERSIST_DEBOUNCE_MS,
+  sessionPersist,
+} from '@/lib/db/middleware/persistControllers';
 import {
   getValidEvents,
   isActiveSessionState,
@@ -14,44 +14,11 @@ import {
   transition,
 } from '@/lib/sessionMachine/transitions';
 import {
-  getSessionSnapshot,
   useSessionState,
   useSessionStore,
 } from '@/stores/sessionStore';
 import { getTaskSnapshot } from '@/stores/taskStore';
 import type { SessionEvent, Thought } from '@/types/session';
-
-const THOUGHT_PERSIST_DEBOUNCE_MS = 300;
-
-let thoughtPersistTimer: ReturnType<typeof setTimeout> | null = null;
-let pendingThoughtPersist: Promise<void> | null = null;
-
-function scheduleThoughtPersist(): void {
-  if (thoughtPersistTimer) {
-    clearTimeout(thoughtPersistTimer);
-  }
-
-  thoughtPersistTimer = setTimeout(() => {
-    thoughtPersistTimer = null;
-    pendingThoughtPersist = persistSessionSnapshot().catch(() => {
-      pendingThoughtPersist = null;
-    });
-  }, THOUGHT_PERSIST_DEBOUNCE_MS);
-}
-
-async function persistTransition(): Promise<void> {
-  if (thoughtPersistTimer) {
-    clearTimeout(thoughtPersistTimer);
-    thoughtPersistTimer = null;
-  }
-
-  if (pendingThoughtPersist) {
-    await pendingThoughtPersist;
-    pendingThoughtPersist = null;
-  }
-
-  await persistSessionSnapshot();
-}
 
 export interface SessionActions {
   start: () => Promise<void>;
@@ -104,7 +71,7 @@ export function useSessionActions(): SessionActions {
       }
 
       if (event !== 'ABANDON' && event !== 'FINISH') {
-        await persistTransition();
+        await sessionPersist.flush();
       }
     } finally {
       isTransitioningRef.current = false;
@@ -114,7 +81,7 @@ export function useSessionActions(): SessionActions {
 
   const updateThoughts = useCallback((thoughts: Thought[]) => {
     useSessionStore.getState().setThoughts(thoughts);
-    scheduleThoughtPersist();
+    sessionPersist.schedule({ debounceMs: SESSION_THOUGHT_PERSIST_DEBOUNCE_MS });
   }, []);
 
   const completeStartReview = useCallback(
@@ -146,21 +113,7 @@ export function useSessionActions(): SessionActions {
 }
 
 export async function awaitInFlightSessionPersist(): Promise<void> {
-  if (thoughtPersistTimer) {
-    clearTimeout(thoughtPersistTimer);
-    thoughtPersistTimer = null;
-    pendingThoughtPersist = persistSessionSnapshot();
-  }
-
-  if (pendingThoughtPersist) {
-    await pendingThoughtPersist;
-    pendingThoughtPersist = null;
-  }
-
-  const snapshot = getSessionSnapshot();
-  if (snapshot) {
-    await saveActiveSession(snapshot);
-  }
+  await sessionPersist.awaitInFlight();
 }
 
 export { getValidEvents, resolveStartTarget, transition } from '@/lib/sessionMachine/transitions';

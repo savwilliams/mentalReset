@@ -1,4 +1,8 @@
 import { IndexedDBUnavailableError, isIndexedDBAvailable, openDatabase } from '@/lib/db/database';
+import {
+  resetPersistMiddlewareForTests,
+  startPersistMiddleware,
+} from '@/lib/db/middleware/persistControllers';
 import { getActiveSession } from '@/lib/db/repositories/sessionRepository';
 import { getSettings } from '@/lib/db/repositories/settingsRepository';
 import { getAllTasks } from '@/lib/db/repositories/taskRepository';
@@ -13,6 +17,7 @@ let initPromise: Promise<void> | null = null;
 
 export function resetDataLayerForTests(): void {
   initPromise = null;
+  resetPersistMiddlewareForTests();
 }
 
 export async function initDataLayer(): Promise<void> {
@@ -37,6 +42,7 @@ export async function initDataLayer(): Promise<void> {
     hydrateSessionStore(activeSession);
     hydrateTaskStore(tasks);
     hydrateSettingsStore(settings);
+    startPersistMiddleware();
   })();
 
   return initPromise;

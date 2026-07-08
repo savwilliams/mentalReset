@@ -8,6 +8,16 @@ export {
 } from '@/lib/db/database';
 export { initDataLayer } from '@/lib/db/init';
 export {
+  createPersistController,
+  createStorePersistSubscription,
+  resetPersistMiddlewareForTests,
+  sessionPersist,
+  settingsPersist,
+  startPersistMiddleware,
+  taskPersist,
+  type PersistController,
+} from '@/lib/db/middleware';
+export {
   persistSessionSnapshot,
   persistTaskSnapshot,
   persistSettingsSnapshot,
