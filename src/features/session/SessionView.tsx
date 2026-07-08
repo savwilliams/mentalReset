@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 
 import { PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
-import { useSessionGuard } from '@/features/shell/useSessionGuard';
+import { useSessionGuard } from '@/features/shell';
 import { StartSessionScreen } from '@/features/session/screens/StartSessionScreen';
 import { useSessionActions } from '@/lib/sessionMachine';
 import { useSessionState } from '@/stores/sessionStore';
