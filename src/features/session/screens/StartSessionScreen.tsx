@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { Card, PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
-import { useSessionGuard } from '@/features/shell/useSessionGuard';
+import { useSessionGuard } from '@/features/shell';
 import { useLaterTasks } from '@/features/session/hooks/useLaterTasks';
 import { useSessionActions } from '@/lib/sessionMachine';
 

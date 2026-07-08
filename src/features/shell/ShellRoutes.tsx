@@ -1,9 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { SessionHistoryScreen } from '@/features/tasks/screens/SessionHistoryScreen';
+import { TodaysPlanScreen } from '@/features/tasks/screens/TodaysPlanScreen';
 import { IdleScreen } from '@/features/shell/screens/IdleScreen';
 import { SettingsScreen } from '@/features/shell/screens/SettingsScreen';
-import { TodaysPlanScreen } from '@/features/shell/screens/TodaysPlanScreen';
 
 export function ShellRoutes() {
   return (

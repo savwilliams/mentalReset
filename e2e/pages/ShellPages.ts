@@ -11,6 +11,36 @@ export class TodaysPlanPage {
     this.backButton = page.getByRole('button', { name: /back to home/i });
   }
 
+  section(title: string | RegExp): Locator {
+    return this.page.getByRole('region', { name: title });
+  }
+
+  taskCheckbox(taskText: string | RegExp): Locator {
+    return this.page.getByRole('checkbox', { name: new RegExp(taskText, 'i') });
+  }
+
+  moveTaskButton(taskText: string | RegExp, category: string | RegExp): Locator {
+    return this.page.getByRole('button', {
+      name: new RegExp(`move .*${typeof taskText === 'string' ? taskText : taskText.source}.*to ${typeof category === 'string' ? category : category.source}`, 'i'),
+    });
+  }
+
+  async backToHome(): Promise<void> {
+    await this.backButton.click();
+  }
+}
+
+export class SessionHistoryPage {
+  readonly page: Page;
+  readonly heading: Locator;
+  readonly backButton: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.heading = page.getByRole('heading', { name: /session history/i });
+    this.backButton = page.getByRole('button', { name: /back to home/i });
+  }
+
   async backToHome(): Promise<void> {
     await this.backButton.click();
   }
