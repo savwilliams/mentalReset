@@ -168,8 +168,24 @@ export async function countSessionsInIndexedDB(page: Page): Promise<number> {
 }
 
 export async function getActiveSessionStateFromIndexedDB(page: Page): Promise<string | null> {
+  const session = await getActiveSessionFromIndexedDB(page);
+  return session?.state && session.state !== 'IDLE' ? session.state : null;
+}
+
+export type StoredSession = {
+  id: string;
+  state: string;
+  thoughts: Array<{ id: string; text: string }>;
+  stats?: {
+    tasksCreated?: number;
+    releasedCount?: number;
+    estimatedTimeTotal?: number;
+  };
+};
+
+export async function getActiveSessionFromIndexedDB(page: Page): Promise<StoredSession | null> {
   return page.evaluate(async (dbName) => {
-    return new Promise<string | null>((resolve, reject) => {
+    return new Promise<StoredSession | null>((resolve, reject) => {
       const openRequest = indexedDB.open(dbName);
 
       openRequest.onerror = () => reject(openRequest.error ?? new Error('Failed to open IndexedDB'));
@@ -189,12 +205,75 @@ export async function getActiveSessionStateFromIndexedDB(page: Page): Promise<st
 
         getAllRequest.onsuccess = () => {
           db.close();
-          const sessions = getAllRequest.result as Array<{ state?: string }>;
+          const sessions = getAllRequest.result as StoredSession[];
           const active = sessions.find((session) => session.state && session.state !== 'IDLE');
-          resolve(active?.state ?? null);
+          resolve(active ?? null);
         };
         getAllRequest.onerror = () =>
           reject(getAllRequest.error ?? new Error('Failed to read sessions'));
+      };
+    });
+  }, DB_NAME);
+}
+
+export async function getAllTasksFromIndexedDB(page: Page): Promise<SeedTask[]> {
+  return page.evaluate(async (dbName) => {
+    return new Promise<SeedTask[]>((resolve, reject) => {
+      const openRequest = indexedDB.open(dbName);
+
+      openRequest.onerror = () => reject(openRequest.error ?? new Error('Failed to open IndexedDB'));
+
+      openRequest.onsuccess = () => {
+        const db = openRequest.result;
+
+        if (!db.objectStoreNames.contains('tasks')) {
+          db.close();
+          resolve([]);
+          return;
+        }
+
+        const transaction = db.transaction('tasks', 'readonly');
+        const store = transaction.objectStore('tasks');
+        const getAllRequest = store.getAll();
+
+        getAllRequest.onsuccess = () => {
+          db.close();
+          resolve(getAllRequest.result as SeedTask[]);
+        };
+        getAllRequest.onerror = () => reject(getAllRequest.error ?? new Error('Failed to read tasks'));
+      };
+    });
+  }, DB_NAME);
+}
+
+export async function getAllSessionSummariesFromIndexedDB(
+  page: Page,
+): Promise<SeedSessionSummary[]> {
+  return page.evaluate(async (dbName) => {
+    return new Promise<SeedSessionSummary[]>((resolve, reject) => {
+      const openRequest = indexedDB.open(dbName);
+
+      openRequest.onerror = () => reject(openRequest.error ?? new Error('Failed to open IndexedDB'));
+
+      openRequest.onsuccess = () => {
+        const db = openRequest.result;
+
+        if (!db.objectStoreNames.contains('sessionSummaries')) {
+          db.close();
+          resolve([]);
+          return;
+        }
+
+        const transaction = db.transaction('sessionSummaries', 'readonly');
+        const store = transaction.objectStore('sessionSummaries');
+        const getAllRequest = store.getAll();
+
+        getAllRequest.onsuccess = () => {
+          db.close();
+          resolve(getAllRequest.result as SeedSessionSummary[]);
+        };
+        getAllRequest.onerror = () =>
+          reject(getAllRequest.error ?? new Error('Failed to read session summaries'));
       };
     });
   }, DB_NAME);
