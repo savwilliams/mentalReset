@@ -12,6 +12,7 @@ export {
   persistTaskSnapshot,
   persistSettingsSnapshot,
   clearEphemeralSessionData,
+  completeSession,
   saveActiveSession,
 } from '@/lib/db/persist';
 export {

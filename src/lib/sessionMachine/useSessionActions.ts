@@ -11,6 +11,7 @@ import {
 } from '@/features/session/hooks/useTimeEstimationQueue';
 import {
   clearEphemeralSessionData,
+  completeSession,
   persistSessionSnapshot,
   saveActiveSession,
 } from '@/lib/db/persist';
@@ -115,7 +116,15 @@ export function useSessionActions(): SessionActions {
           return;
         }
         store.startSession(nextState);
-      } else if (event === 'ABANDON' || event === 'FINISH') {
+      } else if (event === 'FINISH') {
+        const snapshot = getSessionSnapshot();
+        if (snapshot) {
+          await completeSession(snapshot);
+        } else {
+          await clearEphemeralSessionData();
+        }
+        store.resetToIdle();
+      } else if (event === 'ABANDON') {
         store.resetToIdle();
         await clearEphemeralSessionData();
       } else {
