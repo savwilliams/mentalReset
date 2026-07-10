@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import { PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
 import { BrainDumpScreen } from '@/features/session/screens/BrainDumpScreen';
 import { PrioritizationScreen } from '@/features/session/screens/PrioritizationScreen';
+import { ReleaseScreen } from '@/features/session/screens/ReleaseScreen';
 import { SortingScreen } from '@/features/session/screens/SortingScreen';
 import { StartSessionScreen } from '@/features/session/screens/StartSessionScreen';
 import { TimeEstimationScreen } from '@/features/session/screens/TimeEstimationScreen';
@@ -11,14 +12,7 @@ import { useSessionActions } from '@/lib/sessionMachine';
 import { useSessionState } from '@/stores/sessionStore';
 import type { SessionState } from '@/types/session';
 
-const SESSION_STEP_LABELS: Record<
-  Exclude<
-    SessionState,
-    'IDLE' | 'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING' | 'PRIORITIZATION' | 'TIME_ESTIMATION'
-  >,
-  string
-> = {
-  RELEASE: 'Release',
+const SESSION_STEP_LABELS: Record<'SUMMARY', string> = {
   SUMMARY: 'Summary',
 };
 
@@ -29,7 +23,12 @@ function SessionStepPlaceholder({
 }: {
   step: Exclude<
     ActiveSessionState,
-    'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING' | 'PRIORITIZATION' | 'TIME_ESTIMATION'
+    | 'START_REVIEW'
+    | 'BRAIN_DUMP'
+    | 'SORTING'
+    | 'PRIORITIZATION'
+    | 'TIME_ESTIMATION'
+    | 'RELEASE'
   >;
 }) {
   const { requestAbandon } = useSessionGuard();
@@ -80,7 +79,7 @@ const SESSION_VIEWS: Record<ActiveSessionState, ComponentType> = {
   SORTING: SortingScreen,
   PRIORITIZATION: PrioritizationScreen,
   TIME_ESTIMATION: TimeEstimationScreen,
-  RELEASE: () => <SessionStepPlaceholder step="RELEASE" />,
+  RELEASE: ReleaseScreen,
   SUMMARY: () => <SessionStepPlaceholder step="SUMMARY" />,
 };
 

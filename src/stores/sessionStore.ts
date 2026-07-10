@@ -29,6 +29,7 @@ interface SessionStoreActions {
   setTransitioning: (value: boolean) => void;
   setThoughts: (thoughts: Thought[]) => void;
   setEstimatedTimeTotal: (estimatedTimeTotal: number) => void;
+  setReleasedCount: (releasedCount: number) => void;
   markHydrated: () => void;
 }
 
@@ -93,6 +94,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
       stats: {
         ...current.stats,
         estimatedTimeTotal,
+      },
+    })),
+
+  setReleasedCount: (releasedCount) =>
+    set((current) => ({
+      stats: {
+        ...current.stats,
+        releasedCount,
       },
     })),
 

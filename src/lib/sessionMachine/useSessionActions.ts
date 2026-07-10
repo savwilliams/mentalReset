@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { createThoughtsFromLaterTasks } from '@/features/session/hooks/pullInLaterTasks';
 import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
 import { areAllActionableThoughtsPrioritized } from '@/features/session/hooks/usePrioritizationQueue';
+import { isReleaseComplete } from '@/features/session/hooks/useReleaseQueue';
 import { areAllThoughtsResolved } from '@/features/session/hooks/useSortingQueue';
 import {
   areAllEstimableTasksEstimated,
@@ -68,6 +69,7 @@ export interface SessionActions {
   abandon: () => Promise<void>;
   updateThoughts: (thoughts: Thought[]) => void;
   updateEstimatedTimeTotal: (estimatedTimeTotal: number) => void;
+  updateReleasedCount: (releasedCount: number) => void;
   validEvents: SessionEvent[];
   isTransitioning: boolean;
   isActive: boolean;
@@ -139,6 +141,11 @@ export function useSessionActions(): SessionActions {
     scheduleThoughtPersist();
   }, []);
 
+  const updateReleasedCount = useCallback((releasedCount: number) => {
+    useSessionStore.getState().setReleasedCount(releasedCount);
+    scheduleThoughtPersist();
+  }, []);
+
   const completeStartReview = useCallback(
     async (selectedTaskIds: string[]) => {
       const thoughts = createThoughtsFromLaterTasks(selectedTaskIds);
@@ -172,6 +179,9 @@ export function useSessionActions(): SessionActions {
     ) {
       return;
     }
+    if (store.state === 'RELEASE' && !isReleaseComplete(store.thoughts)) {
+      return;
+    }
     await dispatch('CONTINUE');
   }, [dispatch]);
 
@@ -185,6 +195,7 @@ export function useSessionActions(): SessionActions {
     },
     updateThoughts,
     updateEstimatedTimeTotal,
+    updateReleasedCount,
     validEvents,
     isTransitioning,
     isActive: isActiveSessionState(state),
