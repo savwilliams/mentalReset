@@ -107,7 +107,7 @@ test.describe('Task management', () => {
     ]);
     await reloadFromIdle(page);
 
-    await page.getByRole('button', { name: /session history/i }).click();
+    await idle.openSessionHistory();
     await expect(history.heading).toBeVisible();
 
     await expect(page.getByText(/3 tasks created/i)).toBeVisible();

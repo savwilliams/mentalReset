@@ -6,6 +6,7 @@ export class IdlePage {
   readonly tagline: Locator;
   readonly startButton: Locator;
   readonly todaysPlanButton: Locator;
+  readonly sessionHistoryButton: Locator;
   readonly settingsButton: Locator;
 
   constructor(page: Page) {
@@ -14,6 +15,7 @@ export class IdlePage {
     this.tagline = page.getByText(/calm space to reset your mind/i);
     this.startButton = page.getByRole('button', { name: /start mental reset/i });
     this.todaysPlanButton = page.getByRole('button', { name: /today's plan/i });
+    this.sessionHistoryButton = page.getByRole('button', { name: /session history/i });
     this.settingsButton = page.getByRole('button', { name: /settings/i });
   }
 
@@ -28,6 +30,10 @@ export class IdlePage {
 
   async openTodaysPlan(): Promise<void> {
     await this.todaysPlanButton.click();
+  }
+
+  async openSessionHistory(): Promise<void> {
+    await this.sessionHistoryButton.click();
   }
 
   async openSettings(): Promise<void> {
