@@ -2,13 +2,13 @@ import type { ComponentType } from 'react';
 
 import { PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
 import { useSessionGuard } from '@/features/shell';
+import { BrainDumpScreen } from '@/features/session/screens/BrainDumpScreen';
 import { StartSessionScreen } from '@/features/session/screens/StartSessionScreen';
 import { useSessionActions } from '@/lib/sessionMachine';
 import { useSessionState } from '@/stores/sessionStore';
 import type { SessionState } from '@/types/session';
 
-const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE' | 'START_REVIEW'>, string> = {
-  BRAIN_DUMP: 'Brain Dump',
+const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE' | 'START_REVIEW' | 'BRAIN_DUMP'>, string> = {
   SORTING: 'Sorting',
   PRIORITIZATION: 'Prioritization',
   TIME_ESTIMATION: 'Time Estimation',
@@ -18,7 +18,11 @@ const SESSION_STEP_LABELS: Record<Exclude<SessionState, 'IDLE' | 'START_REVIEW'>
 
 type ActiveSessionState = Exclude<SessionState, 'IDLE'>;
 
-function SessionStepPlaceholder({ step }: { step: Exclude<ActiveSessionState, 'START_REVIEW'> }) {
+function SessionStepPlaceholder({
+  step,
+}: {
+  step: Exclude<ActiveSessionState, 'START_REVIEW' | 'BRAIN_DUMP'>;
+}) {
   const { requestAbandon } = useSessionGuard();
   const { continue: continueSession, finish, validEvents, isTransitioning } = useSessionActions();
 
@@ -63,7 +67,7 @@ function SessionStepPlaceholder({ step }: { step: Exclude<ActiveSessionState, 'S
 
 const SESSION_VIEWS: Record<ActiveSessionState, ComponentType> = {
   START_REVIEW: StartSessionScreen,
-  BRAIN_DUMP: () => <SessionStepPlaceholder step="BRAIN_DUMP" />,
+  BRAIN_DUMP: BrainDumpScreen,
   SORTING: () => <SessionStepPlaceholder step="SORTING" />,
   PRIORITIZATION: () => <SessionStepPlaceholder step="PRIORITIZATION" />,
   TIME_ESTIMATION: () => <SessionStepPlaceholder step="TIME_ESTIMATION" />,

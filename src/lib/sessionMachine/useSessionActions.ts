@@ -130,9 +130,17 @@ export function useSessionActions(): SessionActions {
 
   const validEvents = useMemo(() => getValidEvents(state), [state]);
 
+  const continueSession = useCallback(async () => {
+    const store = useSessionStore.getState();
+    if (store.state === 'BRAIN_DUMP' && store.thoughts.length < 1) {
+      return;
+    }
+    await dispatch('CONTINUE');
+  }, [dispatch]);
+
   return {
     start: () => dispatch('START'),
-    continue: () => dispatch('CONTINUE'),
+    continue: continueSession,
     completeStartReview,
     finish: () => dispatch('FINISH'),
     abandon: async () => {
