@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef } from 'react';
 
 import { createThoughtsFromLaterTasks } from '@/features/session/hooks/pullInLaterTasks';
 import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
+import { areAllThoughtsResolved } from '@/features/session/hooks/useSortingQueue';
 import {
   clearEphemeralSessionData,
   persistSessionSnapshot,
@@ -133,6 +134,9 @@ export function useSessionActions(): SessionActions {
   const continueSession = useCallback(async () => {
     const store = useSessionStore.getState();
     if (store.state === 'BRAIN_DUMP' && store.thoughts.length < 1) {
+      return;
+    }
+    if (store.state === 'SORTING' && !areAllThoughtsResolved(store.thoughts)) {
       return;
     }
     await dispatch('CONTINUE');
