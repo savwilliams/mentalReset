@@ -1,19 +1,19 @@
 import type { ComponentType } from 'react';
 
 import { PrimaryCTA, Screen, SecondaryButton } from '@/components/ui';
-import { useSessionGuard } from '@/features/shell';
 import { BrainDumpScreen } from '@/features/session/screens/BrainDumpScreen';
+import { PrioritizationScreen } from '@/features/session/screens/PrioritizationScreen';
 import { SortingScreen } from '@/features/session/screens/SortingScreen';
 import { StartSessionScreen } from '@/features/session/screens/StartSessionScreen';
+import { useSessionGuard } from '@/features/shell';
 import { useSessionActions } from '@/lib/sessionMachine';
 import { useSessionState } from '@/stores/sessionStore';
 import type { SessionState } from '@/types/session';
 
 const SESSION_STEP_LABELS: Record<
-  Exclude<SessionState, 'IDLE' | 'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING'>,
+  Exclude<SessionState, 'IDLE' | 'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING' | 'PRIORITIZATION'>,
   string
 > = {
-  PRIORITIZATION: 'Prioritization',
   TIME_ESTIMATION: 'Time Estimation',
   RELEASE: 'Release',
   SUMMARY: 'Summary',
@@ -24,7 +24,7 @@ type ActiveSessionState = Exclude<SessionState, 'IDLE'>;
 function SessionStepPlaceholder({
   step,
 }: {
-  step: Exclude<ActiveSessionState, 'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING'>;
+  step: Exclude<ActiveSessionState, 'START_REVIEW' | 'BRAIN_DUMP' | 'SORTING' | 'PRIORITIZATION'>;
 }) {
   const { requestAbandon } = useSessionGuard();
   const { continue: continueSession, finish, validEvents, isTransitioning } = useSessionActions();
@@ -72,7 +72,7 @@ const SESSION_VIEWS: Record<ActiveSessionState, ComponentType> = {
   START_REVIEW: StartSessionScreen,
   BRAIN_DUMP: BrainDumpScreen,
   SORTING: SortingScreen,
-  PRIORITIZATION: () => <SessionStepPlaceholder step="PRIORITIZATION" />,
+  PRIORITIZATION: PrioritizationScreen,
   TIME_ESTIMATION: () => <SessionStepPlaceholder step="TIME_ESTIMATION" />,
   RELEASE: () => <SessionStepPlaceholder step="RELEASE" />,
   SUMMARY: () => <SessionStepPlaceholder step="SUMMARY" />,

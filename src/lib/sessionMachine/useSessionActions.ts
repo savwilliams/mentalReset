@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef } from 'react';
 
 import { createThoughtsFromLaterTasks } from '@/features/session/hooks/pullInLaterTasks';
 import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
+import { areAllActionableThoughtsPrioritized } from '@/features/session/hooks/usePrioritizationQueue';
 import { areAllThoughtsResolved } from '@/features/session/hooks/useSortingQueue';
 import {
   clearEphemeralSessionData,
@@ -137,6 +138,12 @@ export function useSessionActions(): SessionActions {
       return;
     }
     if (store.state === 'SORTING' && !areAllThoughtsResolved(store.thoughts)) {
+      return;
+    }
+    if (
+      store.state === 'PRIORITIZATION' &&
+      !areAllActionableThoughtsPrioritized(store.thoughts)
+    ) {
       return;
     }
     await dispatch('CONTINUE');

@@ -10,6 +10,7 @@ interface TaskStoreState {
 
 interface TaskStoreActions {
   setTasks: (tasks: Task[]) => void;
+  replaceTasks: (tasks: Task[]) => void;
   markHydrated: () => void;
   toggleTaskCompleted: (taskId: string) => void;
   moveTaskCategory: (taskId: string, category: TaskCategory) => void;
@@ -26,6 +27,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   isHydrated: false,
 
   setTasks: (tasks) => set({ tasks }),
+  replaceTasks: (tasks) => {
+    set({ tasks });
+    persistTasks(tasks);
+  },
   markHydrated: () => set({ isHydrated: true }),
 
   toggleTaskCompleted: (taskId) => {
