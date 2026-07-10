@@ -28,6 +28,7 @@ interface SessionStoreActions {
   resetToIdle: () => void;
   setTransitioning: (value: boolean) => void;
   setThoughts: (thoughts: Thought[]) => void;
+  setEstimatedTimeTotal: (estimatedTimeTotal: number) => void;
   markHydrated: () => void;
 }
 
@@ -84,6 +85,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
         ...current.stats,
         thoughtsCount: thoughts.length,
         tasksCreated: countTasksCreatedFromThoughts(thoughts),
+      },
+    })),
+
+  setEstimatedTimeTotal: (estimatedTimeTotal) =>
+    set((current) => ({
+      stats: {
+        ...current.stats,
+        estimatedTimeTotal,
       },
     })),
 

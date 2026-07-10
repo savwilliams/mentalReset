@@ -3,6 +3,7 @@ export {
   isActiveSessionState,
   isValidTransition,
   resolveStartTarget,
+  resolveTimeEstimationTarget,
   transition,
   TRANSITION_TABLE,
   SESSION_EVENTS,

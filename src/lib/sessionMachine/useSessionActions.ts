@@ -5,6 +5,10 @@ import { filterLaterTasks } from '@/features/session/hooks/useLaterTasks';
 import { areAllActionableThoughtsPrioritized } from '@/features/session/hooks/usePrioritizationQueue';
 import { areAllThoughtsResolved } from '@/features/session/hooks/useSortingQueue';
 import {
+  areAllEstimableTasksEstimated,
+  hasEstimableTasks,
+} from '@/features/session/hooks/useTimeEstimationQueue';
+import {
   clearEphemeralSessionData,
   persistSessionSnapshot,
   saveActiveSession,
@@ -13,6 +17,7 @@ import {
   getValidEvents,
   isActiveSessionState,
   resolveStartTarget,
+  resolveTimeEstimationTarget,
   transition,
 } from '@/lib/sessionMachine/transitions';
 import {
@@ -62,6 +67,7 @@ export interface SessionActions {
   finish: () => Promise<void>;
   abandon: () => Promise<void>;
   updateThoughts: (thoughts: Thought[]) => void;
+  updateEstimatedTimeTotal: (estimatedTimeTotal: number) => void;
   validEvents: SessionEvent[];
   isTransitioning: boolean;
   isActive: boolean;
@@ -80,10 +86,19 @@ export function useSessionActions(): SessionActions {
     }
 
     const currentState = store.state;
-    const nextState =
+    let nextState =
       event === 'START' && currentState === 'IDLE'
         ? resolveStartTarget(filterLaterTasks(getTaskSnapshot()).length > 0)
         : transition(currentState, event);
+
+    if (
+      event === 'CONTINUE' &&
+      currentState === 'PRIORITIZATION' &&
+      nextState === 'TIME_ESTIMATION' &&
+      !hasEstimableTasks(getTaskSnapshot())
+    ) {
+      nextState = resolveTimeEstimationTarget(false);
+    }
 
     if (nextState === currentState) {
       return;
@@ -119,6 +134,11 @@ export function useSessionActions(): SessionActions {
     scheduleThoughtPersist();
   }, []);
 
+  const updateEstimatedTimeTotal = useCallback((estimatedTimeTotal: number) => {
+    useSessionStore.getState().setEstimatedTimeTotal(estimatedTimeTotal);
+    scheduleThoughtPersist();
+  }, []);
+
   const completeStartReview = useCallback(
     async (selectedTaskIds: string[]) => {
       const thoughts = createThoughtsFromLaterTasks(selectedTaskIds);
@@ -146,6 +166,12 @@ export function useSessionActions(): SessionActions {
     ) {
       return;
     }
+    if (
+      store.state === 'TIME_ESTIMATION' &&
+      !areAllEstimableTasksEstimated(getTaskSnapshot())
+    ) {
+      return;
+    }
     await dispatch('CONTINUE');
   }, [dispatch]);
 
@@ -158,6 +184,7 @@ export function useSessionActions(): SessionActions {
       await dispatch('ABANDON');
     },
     updateThoughts,
+    updateEstimatedTimeTotal,
     validEvents,
     isTransitioning,
     isActive: isActiveSessionState(state),
@@ -182,4 +209,9 @@ export async function awaitInFlightSessionPersist(): Promise<void> {
   }
 }
 
-export { getValidEvents, resolveStartTarget, transition } from '@/lib/sessionMachine/transitions';
+export {
+  getValidEvents,
+  resolveStartTarget,
+  resolveTimeEstimationTarget,
+  transition,
+} from '@/lib/sessionMachine/transitions';

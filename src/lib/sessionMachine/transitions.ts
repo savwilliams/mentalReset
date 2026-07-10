@@ -73,4 +73,9 @@ export function resolveStartTarget(hasLaterTasks: boolean): SessionState {
   return hasLaterTasks ? 'START_REVIEW' : 'BRAIN_DUMP';
 }
 
+/** PRIORITIZATION + CONTINUE skips TIME_ESTIMATION when there are no TODAY/SOON tasks. */
+export function resolveTimeEstimationTarget(hasEstimableTasks: boolean): SessionState {
+  return hasEstimableTasks ? 'TIME_ESTIMATION' : 'RELEASE';
+}
+
 export { SESSION_EVENTS, SESSION_STATES };
