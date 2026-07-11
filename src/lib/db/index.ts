@@ -15,6 +15,11 @@ export {
   saveActiveSession,
 } from '@/lib/db/persist';
 export {
+  getRecoveredActiveSession,
+  parseActiveSession,
+  recoverActiveSessionFromDb,
+} from '@/lib/db/sessionRecovery';
+export {
   clearActiveSession,
   getActiveSession,
 } from '@/lib/db/repositories/sessionRepository';
