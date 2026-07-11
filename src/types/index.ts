@@ -11,6 +11,7 @@ export type {
 export {
   SESSION_EVENTS,
   SESSION_STATES,
+  buildSessionSummary,
   createActiveSession,
   createEmptySessionStats,
 } from '@/types/session';

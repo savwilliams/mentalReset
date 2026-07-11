@@ -72,3 +72,17 @@ export function createActiveSession(state: SessionState = 'BRAIN_DUMP'): ActiveS
     thoughts: [],
   };
 }
+
+/** Durable summary from an active session. Never includes thought text. */
+export function buildSessionSummary(
+  session: ActiveSession,
+  completedAt: number = Date.now(),
+): SessionSummary {
+  return {
+    id: session.id,
+    completedAt: session.completedAt ?? completedAt,
+    tasksCreated: session.stats.tasksCreated,
+    releasedCount: session.stats.releasedCount,
+    estimatedTimeTotal: session.stats.estimatedTimeTotal,
+  };
+}

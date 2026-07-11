@@ -5,6 +5,7 @@ import { App } from '@/app/App';
 import { IndexedDBUnavailableError, initDataLayer } from '@/lib/db/init';
 import { ensureAnonymousAuth } from '@/lib/firebase/auth';
 import { initFirebase } from '@/lib/firebase';
+import { initSyncEngine } from '@/lib/sync/syncEngine';
 import '@/styles/globals.css';
 
 function renderStorageError(root: HTMLElement, message: string): void {
@@ -40,6 +41,9 @@ async function bootstrap(): Promise<void> {
     }
     throw error;
   }
+
+  // Background Firestore sync — no-ops when Firebase/auth unavailable (AC-2).
+  initSyncEngine();
 
   createRoot(rootElement).render(
     <StrictMode>

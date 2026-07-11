@@ -8,6 +8,7 @@ import {
   persistSessionSnapshot,
   saveActiveSession,
 } from '@/lib/db/persist';
+import { saveSessionSummary } from '@/lib/db/repositories/sessionSummaryRepository';
 import {
   getValidEvents,
   isActiveSessionState,
@@ -20,7 +21,7 @@ import {
   useSessionStore,
 } from '@/stores/sessionStore';
 import { getTaskSnapshot } from '@/stores/taskStore';
-import type { SessionEvent, Thought } from '@/types/session';
+import { buildSessionSummary, type SessionEvent, type Thought } from '@/types/session';
 
 const THOUGHT_PERSIST_DEBOUNCE_MS = 300;
 
@@ -97,8 +98,22 @@ export function useSessionActions(): SessionActions {
           return;
         }
         store.startSession(nextState);
-      } else if (event === 'ABANDON' || event === 'FINISH') {
+      } else if (event === 'ABANDON') {
+        // Flush in-flight Dexie writes before reset so a late persist cannot revive the session.
+        await awaitInFlightSessionPersist();
         store.resetToIdle();
+        await clearEphemeralSessionData();
+      } else if (event === 'FINISH') {
+        const snapshot = getSessionSnapshot();
+        store.resetToIdle();
+        if (snapshot) {
+          await saveSessionSummary(
+            buildSessionSummary({
+              ...snapshot,
+              completedAt: Date.now(),
+            }),
+          );
+        }
         await clearEphemeralSessionData();
       } else {
         store.applyTransition(nextState);

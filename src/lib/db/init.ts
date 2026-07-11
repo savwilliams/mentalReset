@@ -1,5 +1,5 @@
 import { IndexedDBUnavailableError, isIndexedDBAvailable, openDatabase } from '@/lib/db/database';
-import { getActiveSession } from '@/lib/db/repositories/sessionRepository';
+import { getRecoveredActiveSession } from '@/lib/db/sessionRecovery';
 import { getSettings } from '@/lib/db/repositories/settingsRepository';
 import { getAllTasks } from '@/lib/db/repositories/taskRepository';
 import { hydrateSessionStore } from '@/stores/sessionStore';
@@ -28,11 +28,9 @@ export async function initDataLayer(): Promise<void> {
     await openDatabase();
     initSyncStore();
 
-    const [activeSession, tasks, settings] = await Promise.all([
-      getActiveSession(),
-      getAllTasks(),
-      getSettings(),
-    ]);
+    // Recover before other hydrations so corrupt/completed sessions are cleared first.
+    const activeSession = await getRecoveredActiveSession();
+    const [tasks, settings] = await Promise.all([getAllTasks(), getSettings()]);
 
     hydrateSessionStore(activeSession);
     hydrateTaskStore(tasks);
