@@ -1,6 +1,7 @@
 import { DEFAULT_USER_SETTINGS, type UserSettings } from '@/types/settings';
 
 import { db } from '@/lib/db/database';
+import { enqueueSettingsSync } from '@/lib/sync/syncEngine';
 
 const LOCAL_SETTINGS_ID = 'local';
 
@@ -21,4 +22,5 @@ export async function getSettings(): Promise<UserSettings> {
 
 export async function saveSettings(settings: UserSettings): Promise<void> {
   await db.settings.put(settings);
+  enqueueSettingsSync();
 }
