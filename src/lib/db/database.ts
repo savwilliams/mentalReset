@@ -1,11 +1,12 @@
 import Dexie, { type EntityTable } from 'dexie';
 
+import { SCHEMA_VERSION_V2, V1_STORES, V2_STORES } from '@/lib/db/migrations/v2';
 import type { ActiveSession, SessionSummary } from '@/types/session';
 import type { UserSettings } from '@/types/settings';
 import type { Task } from '@/types/task';
 
 export const DB_NAME = 'mentalreset';
-export const DB_VERSION = 1;
+export const DB_VERSION = SCHEMA_VERSION_V2;
 
 export class MentalResetDatabase extends Dexie {
   tasks!: EntityTable<Task, 'id'>;
@@ -16,12 +17,13 @@ export class MentalResetDatabase extends Dexie {
   constructor() {
     super(DB_NAME);
 
-    this.version(DB_VERSION).stores({
-      tasks: 'id, category, completed, updatedAt',
-      sessions: 'id, state, createdAt',
-      sessionSummaries: 'id, completedAt',
-      settings: 'id, updatedAt',
-    });
+    this.version(1).stores({ ...V1_STORES });
+
+    this.version(SCHEMA_VERSION_V2)
+      .stores({ ...V2_STORES })
+      .upgrade(async () => {
+        // Index-only change — existing task/session/summary/settings rows stay intact.
+      });
   }
 }
 

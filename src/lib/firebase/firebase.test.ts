@@ -1,10 +1,22 @@
-import { describe, expect, it } from 'vitest';
-
-import { getFirebaseConfig } from '@/lib/firebase/config';
-import { initFirebase, isFirebaseAvailable } from '@/lib/firebase';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('firebase', () => {
-  it('continues offline when config is missing', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('continues offline when config is missing', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', '');
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', '');
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', '');
+    vi.stubEnv('VITE_FIREBASE_STORAGE_BUCKET', '');
+    vi.stubEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', '');
+    vi.stubEnv('VITE_FIREBASE_APP_ID', '');
+
+    const { getFirebaseConfig } = await import('@/lib/firebase/config');
+    const { initFirebase, isFirebaseAvailable } = await import('@/lib/firebase');
+
     const { isConfigured } = getFirebaseConfig();
     expect(isConfigured).toBe(false);
 

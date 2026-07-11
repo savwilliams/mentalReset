@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from '@/app/App';
 import { IndexedDBUnavailableError, initDataLayer } from '@/lib/db/init';
+import { ensureAnonymousAuth } from '@/lib/firebase/auth';
 import { initFirebase } from '@/lib/firebase';
+import { initSyncEngine } from '@/lib/sync/syncEngine';
 import '@/styles/globals.css';
 
 function renderStorageError(root: HTMLElement, message: string): void {
@@ -17,6 +19,8 @@ function renderStorageError(root: HTMLElement, message: string): void {
 
 async function bootstrap(): Promise<void> {
   initFirebase();
+  // Anonymous auth on first launch; failures must not block offline use (AC-2 / AC-3).
+  await ensureAnonymousAuth();
 
   const rootElement = document.getElementById('root');
   if (!rootElement) {
@@ -37,6 +41,9 @@ async function bootstrap(): Promise<void> {
     }
     throw error;
   }
+
+  // Background Firestore sync — no-ops when Firebase/auth unavailable (AC-2).
+  initSyncEngine();
 
   createRoot(rootElement).render(
     <StrictMode>

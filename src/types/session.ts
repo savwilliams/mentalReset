@@ -80,7 +80,7 @@ export function buildSessionSummary(
 ): SessionSummary {
   return {
     id: session.id,
-    completedAt,
+    completedAt: session.completedAt ?? completedAt,
     tasksCreated: session.stats.tasksCreated,
     releasedCount: session.stats.releasedCount,
     estimatedTimeTotal: session.stats.estimatedTimeTotal,

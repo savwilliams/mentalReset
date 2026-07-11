@@ -116,6 +116,11 @@ export function useSessionActions(): SessionActions {
           return;
         }
         store.startSession(nextState);
+      } else if (event === 'ABANDON') {
+        // Flush in-flight Dexie writes before reset so a late persist cannot revive the session.
+        await awaitInFlightSessionPersist();
+        store.resetToIdle();
+        await clearEphemeralSessionData();
       } else if (event === 'FINISH') {
         const snapshot = getSessionSnapshot();
         if (snapshot) {
@@ -124,9 +129,6 @@ export function useSessionActions(): SessionActions {
           await clearEphemeralSessionData();
         }
         store.resetToIdle();
-      } else if (event === 'ABANDON') {
-        store.resetToIdle();
-        await clearEphemeralSessionData();
       } else {
         store.applyTransition(nextState);
       }
