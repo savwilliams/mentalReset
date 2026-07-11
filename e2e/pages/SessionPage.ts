@@ -5,6 +5,7 @@ export class SessionPage {
   readonly title: Locator;
   readonly brainDumpStep: Locator;
   readonly continueButton: Locator;
+  readonly finishButton: Locator;
   readonly leaveSessionButton: Locator;
 
   constructor(page: Page) {
@@ -12,6 +13,7 @@ export class SessionPage {
     this.title = page.getByRole('heading', { name: /mental reset/i });
     this.brainDumpStep = page.getByText(/brain dump/i);
     this.continueButton = page.getByRole('button', { name: /continue/i });
+    this.finishButton = page.getByRole('button', { name: /finish/i });
     this.leaveSessionButton = page.getByRole('button', { name: /leave session/i });
   }
 

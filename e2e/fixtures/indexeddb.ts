@@ -199,3 +199,93 @@ export async function getActiveSessionStateFromIndexedDB(page: Page): Promise<st
     });
   }, DB_NAME);
 }
+
+export type SeedActiveSession = {
+  id: string;
+  state: string;
+  createdAt: number;
+  completedAt?: number;
+  stats: {
+    thoughtsCount: number;
+    tasksCreated: number;
+    releasedCount: number;
+    estimatedTimeTotal: number;
+  };
+  thoughts: Array<{ id: string; text: string }>;
+};
+
+export async function seedActiveSessionInIndexedDB(
+  page: Page,
+  session: SeedActiveSession,
+): Promise<void> {
+  await page.goto('/');
+
+  await page.evaluate(
+    async ({ dbName, sessionToSeed }) => {
+      await new Promise<void>((resolve, reject) => {
+        const openRequest = indexedDB.open(dbName);
+
+        openRequest.onerror = () => reject(openRequest.error ?? new Error('Failed to open IndexedDB'));
+
+        openRequest.onsuccess = () => {
+          const db = openRequest.result;
+
+          if (!db.objectStoreNames.contains('sessions')) {
+            db.close();
+            reject(new Error('Sessions store is not available'));
+            return;
+          }
+
+          const transaction = db.transaction('sessions', 'readwrite');
+          const store = transaction.objectStore('sessions');
+          store.put(sessionToSeed);
+
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          transaction.onerror = () =>
+            reject(transaction.error ?? new Error('Failed to seed active session'));
+        };
+      });
+    },
+    { dbName: DB_NAME, sessionToSeed: session },
+  );
+}
+
+export async function getSessionSummaryFromIndexedDB(
+  page: Page,
+  summaryId: string,
+): Promise<SeedSessionSummary | null> {
+  return page.evaluate(
+    async ({ dbName, id }) => {
+      return new Promise<SeedSessionSummary | null>((resolve, reject) => {
+        const openRequest = indexedDB.open(dbName);
+
+        openRequest.onerror = () => reject(openRequest.error ?? new Error('Failed to open IndexedDB'));
+
+        openRequest.onsuccess = () => {
+          const db = openRequest.result;
+
+          if (!db.objectStoreNames.contains('sessionSummaries')) {
+            db.close();
+            resolve(null);
+            return;
+          }
+
+          const transaction = db.transaction('sessionSummaries', 'readonly');
+          const store = transaction.objectStore('sessionSummaries');
+          const getRequest = store.get(id);
+
+          getRequest.onsuccess = () => {
+            db.close();
+            resolve((getRequest.result as SeedSessionSummary | undefined) ?? null);
+          };
+          getRequest.onerror = () =>
+            reject(getRequest.error ?? new Error('Failed to read session summary'));
+        };
+      });
+    },
+    { dbName: DB_NAME, id: summaryId },
+  );
+}
