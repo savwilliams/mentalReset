@@ -6,6 +6,7 @@ import {
   getValidEvents,
   isValidTransition,
   resolveStartTarget,
+  resolveTimeEstimationTarget,
   transition,
 } from '@/lib/sessionMachine/transitions';
 
@@ -24,6 +25,11 @@ describe('sessionMachine transitions', () => {
   it('resolves the start target based on Save for Later tasks', () => {
     expect(resolveStartTarget(false)).toBe('BRAIN_DUMP');
     expect(resolveStartTarget(true)).toBe('START_REVIEW');
+  });
+
+  it('skips time estimation when there are no TODAY/SOON tasks', () => {
+    expect(resolveTimeEstimationTarget(true)).toBe('TIME_ESTIMATION');
+    expect(resolveTimeEstimationTarget(false)).toBe('RELEASE');
   });
 
   it('supports the Save for Later review step before Brain Dump', () => {

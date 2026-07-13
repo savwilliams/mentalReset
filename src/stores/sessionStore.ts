@@ -3,6 +3,15 @@ import { create } from 'zustand';
 import type { ActiveSession, SessionState, SessionStats, Thought } from '@/types/session';
 import { createActiveSession, createEmptySessionStats } from '@/types/session';
 
+function countTasksCreatedFromThoughts(thoughts: Thought[]): number {
+  return thoughts.filter(
+    (thought) =>
+      thought.priority === 'TODAY' ||
+      thought.priority === 'SOON' ||
+      thought.priority === 'LATER',
+  ).length;
+}
+
 interface SessionStoreState {
   state: SessionState;
   sessionId: string | null;
@@ -19,6 +28,8 @@ interface SessionStoreActions {
   resetToIdle: () => void;
   setTransitioning: (value: boolean) => void;
   setThoughts: (thoughts: Thought[]) => void;
+  setEstimatedTimeTotal: (estimatedTimeTotal: number) => void;
+  setReleasedCount: (releasedCount: number) => void;
   markHydrated: () => void;
 }
 
@@ -74,6 +85,23 @@ export const useSessionStore = create<SessionStore>((set) => ({
       stats: {
         ...current.stats,
         thoughtsCount: thoughts.length,
+        tasksCreated: countTasksCreatedFromThoughts(thoughts),
+      },
+    })),
+
+  setEstimatedTimeTotal: (estimatedTimeTotal) =>
+    set((current) => ({
+      stats: {
+        ...current.stats,
+        estimatedTimeTotal,
+      },
+    })),
+
+  setReleasedCount: (releasedCount) =>
+    set((current) => ({
+      stats: {
+        ...current.stats,
+        releasedCount,
       },
     })),
 
